@@ -123,6 +123,7 @@ void parse_args(int argc, char *argv[], char** filename, char** newfilename){
         default: //if more arguments -> too many arguments and print help
             puts("Error: too many arguments.");
             printhelp();
+            exit(EXIT_FAILURE);
 
 
     }
