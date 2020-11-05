@@ -179,11 +179,12 @@ int main(int argc, char *argv[]){
 
     char *filename = NULL, *newfilename = NULL;
 
-    parse_args(argc, argv, &filename, &newfilename);
+    parse_args(argc, argv, &filename, &newfilename); //parse command line arguments
 
-    removeCode(filename, newfilename);
+    removeCode(filename, newfilename); //remove code
 
-    
+    //Garbage Collection
+    if(argc==2 && newfilename!=NULL) free(newfilename);
     return 0;
 }
 ```
