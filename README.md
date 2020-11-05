@@ -2,7 +2,7 @@
 Removes all code except c/c++ type comments from source files.
 The idea is to see how well commented your source files are.
 If they tell a story without the need to understand the code, you're good to go.
-If not, somebody's needs write a story.
+If not, somebody needs write a story.
 
 This program is also an exercice to get introduced to Finite State Machine and their use in syntax analysis.
 
