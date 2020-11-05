@@ -173,6 +173,7 @@ void parse_args(int argc, char *argv[], char** filename, char** newfilename){
     }
 }
 
+
 int main(int argc, char *argv[]){
 
    
@@ -192,12 +193,6 @@ int main(int argc, char *argv[]){
 comments.main.c:
 
 ```c
-                 
-                  
-                  
-                       
-
-                 
     /**
      * 
      * Prints help
@@ -328,12 +323,14 @@ comments.main.c:
 
                                                
 
-                                                    
+                                                     //parse command line arguments
 
-                                      
-
+                                       //remove code
     
+    //Garbage Collection
+                                                       
              
+ 
  
 ```
 
