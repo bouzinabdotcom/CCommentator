@@ -43,13 +43,13 @@ Let's use ccommentator on it's source code!
 main.c
 
 ```c
-# main.c
+# ./main.c
 ```
 
 comments.main.c:
 
 ```c
-# comments.main.c
+# ./comments.main.c
 ```
 
 Can you understand what it does ?
