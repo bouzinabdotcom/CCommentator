@@ -37,40 +37,53 @@ void removeCode(char *filename, char *newfilename) {
 
                 setCursorState(&cs, c); //set the cursor state for the current character
 
-                if(cs==OUTSIDECOMMENT) { //if we are outside of comments
-                    
-                    wasInsideCandidate = 0; //reinnitialize previous inside candidate state
-                    if(wasOutsideCandidate){ //if the previous state was OUTSIDECANDIDATE
-                        fseek(f, ftell(f) - 2, SEEK_SET); //move cursor 2 chars back  
-                        cc = fgetc(f); //read previously omitTed char OUTSIDECANDIDATE
-                        fputc(cc, nf); //write it to newfilename
-                        cc = fgetc(f); //read a char == c
-                        fputc(cc, nf); //write it to newfilename
-                        wasOutsideCandidate = 0; //set prev state to 0
-                    }
-                    else //if it wasnt a candidate
-                        if(c=='\n') //if it's a line break
-                        fputc(c, nf); //write it
-                        else fputc(' ', nf); //if its any other character print a space
-                }else if (cs==INSIDECOMMENT || cs==INSIDELINECOMMENT){ //if we are inside a comment whatever it's type
-                    if(wasInsideCandidate || wasOutsideCandidate){ 
-                        /**
-                         * in both cases where the cursor was OUTSIDECANDIDATE or INSIDECANDIDATE
-                         * we need to write the previous character since it's inside a comment
-                         * 
-                        */
-                        fseek(f, ftell(f) - 2, SEEK_SET); //take cursor 2 chars back
-                        cc = fgetc(f); //read previously omitTed char
-                        fputc(cc, nf); //write it
-                        fseek(f, ftell(f) + 1, SEEK_SET); //move the cursor one char (c)
-                        wasOutsideCandidate = 0; //reset both previous states
-                        wasInsideCandidate=0;
+                switch(cs){
+                    case OUTSIDECOMMENT: //if we are outside of comments
+                        wasInsideCandidate = 0; //reinnitialize previous inside candidate state
+                        if(wasOutsideCandidate){ //if the previous state was OUTSIDECANDIDATE
+                            fseek(f, ftell(f) - 2, SEEK_SET); //move cursor 2 chars back  
+                            cc = fgetc(f); //read previously omitTed char OUTSIDECANDIDATE
+                            fputc(cc, nf); //write it to newfilename
+                            cc = fgetc(f); //read a char == c
+                            fputc(cc, nf); //write it to newfilename
+                            wasOutsideCandidate = 0; //set prev state to 0
+                        }
+                        else //if it wasnt a candidate
+                            if(c=='\n') //if it's a line break
+                            fputc(c, nf); //write it
+                            else fputc(' ', nf); //if its any other character print a space
+                        break;
+                    //if we are inside a comment whatever it's type
+                    case INSIDECOMMENT:
+                    case INSIDELINECOMMENT:
+                        if(wasInsideCandidate || wasOutsideCandidate){ 
+                            /**
+                             * in both cases where the cursor was OUTSIDECANDIDATE or INSIDECANDIDATE
+                             * we need to write the previous character since it's inside a comment
+                             * 
+                            */
+                            fseek(f, ftell(f) - 2, SEEK_SET); //take cursor 2 chars back
+                            cc = fgetc(f); //read previously omitTed char
+                            fputc(cc, nf); //write it
+                            fseek(f, ftell(f) + 1, SEEK_SET); //move the cursor one char (c)
+                            wasOutsideCandidate = 0; //reset both previous states
+                            wasInsideCandidate=0;
 
 
-                    }
-                    fputc(c, nf); //write c
-                }else if(cs==INSIDECANDIDATE) wasInsideCandidate=1; //if the cursor is pointing on a candidate to a comment start save that state 
-                else if(cs==OUTSIDECANDIDATE) wasOutsideCandidate = 1; //if the cursor is pointing on a candidate to a comment end save that state 
+                        }
+                        fputc(c, nf); //write c
+                        break;
+                    case INSIDECANDIDATE:   //if the cursor is pointing on a candidate to a comment start
+                        wasInsideCandidate=1; // save that state 
+                        break;
+                    case OUTSIDECANDIDATE: // if the cursor is pointing on a candidate to a comment end
+                        wasOutsideCandidate = 1; // save that state 
+                        break;
+                    //no default case (enum)
+
+
+                }
+                
             }
 
             fclose(nf); //close newfilename
