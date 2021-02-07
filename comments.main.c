@@ -119,11 +119,13 @@
      * 
     */
                   
-                 //if only on arg is suplied (executable name)
-            // handle error
-                                                  
-                        
-                               
+                 //if only one arg is suplied (executable name) 
+            // use standard io 
+
+            //use filename as a flag to communicate the use of std io
+                                                                       
+
+                                     
                   
                 //if one extra argument is suplied (missing newfilename)
                                    //point to it using filename
@@ -154,13 +156,16 @@
 
                                                      //parse command line arguments
 
-
-                                                                       //remove code 
+                                  
+                                  
+    
+        
+                                                                           //remove code 
     
     //Garbage Collection
                                                        
     //no need to collect the files since they only exist inside removeCode.
 
-    
+
              
  

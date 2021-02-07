@@ -119,11 +119,13 @@ void parse_args(int argc, char *argv[], char** filename, char** newfilename){
      * 
     */
     switch(argc) {
-        case 1:  //if only on arg is suplied (executable name)
-            // handle error
-            puts("Error: Please specify a file"); 
-            printhelp();
-            exit(EXIT_FAILURE);
+        case 1:  //if only one arg is suplied (executable name) 
+            // use standard io 
+
+            //use filename as a flag to communicate the use of std io
+            *filename = (char*) malloc((strlen("std")+1)*sizeof(char));
+
+            strcpy(*filename, "std");
             break;
         case 2: //if one extra argument is suplied (missing newfilename)
             *filename = *(argv+1); //point to it using filename
@@ -154,13 +156,16 @@ int main(int argc, char *argv[]){
 
     parse_args(argc, argv, &filename, &newfilename); //parse command line arguments
 
-
-    removeCode(open_iofile(filename, 0), open_iofile(newfilename, 1)); //remove code 
+    if(strcmp(filename, "std")==0)
+        removeCode(stdin, stdout);
+    
+    else
+        removeCode(open_iofile(filename, 0), open_iofile(newfilename, 1)); //remove code 
     
     //Garbage Collection
     if(argc==2 && newfilename!=NULL) free(newfilename);
     //no need to collect the files since they only exist inside removeCode.
 
-    
+
     return 0;
 }
