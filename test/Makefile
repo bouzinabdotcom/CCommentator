@@ -1,3 +1,7 @@
+All:
+	make test.removecode
+	make test.comment_sm
+
 test.comment_sm: catch.o comment_sm.o comment_sm.test.o  
 	g++ -o test.comment_sm catch.o comment_sm.o comment_sm.test.o  
 

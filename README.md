@@ -35,6 +35,27 @@ Example:
 
 Outputs comments.source.c on the same directory.
 
+You could also make use of the shell's stdin and stdout.
+
+Example:
+
+    $ ./ccommentator < main.c | grep comments
+
+This will print the lines that contain the string `comment` in the comments of main.c
+
+### Testing
+
+This project uses [Catch2](https://github.com/catchorg/Catch2/) for unit testing.
+
+To test, go to test directory:
+
+    $ cd test
+    $ make
+
+For now, two tests are available: test.removecode and test.comment_sm .
+
+    $ ./test.removecode
+
 ### Let's get meta
 Let's use ccommentator on it's source code!
 
@@ -45,8 +66,9 @@ main.c
 ```c
 #include<stdio.h>
 #include<stdlib.h>
+#include <time.h>
 #include<string.h>
-#include "comment_sm.h"
+#include "removecode.h"
 
 void printhelp(){
     /**
@@ -57,101 +79,6 @@ void printhelp(){
     puts("$ ./ccommentator filename [newfilename]");
 }
 
-void removeCode(char *filename, char *newfilename) {
-
-    /**
-     * 
-     * Function that does all the io
-     * reads filename
-     * writes to newfilename
-     * 
-    */
-    FILE *f = NULL; //pointer on filename
-    FILE *nf = NULL; //pointer on newfilename
-    char c, cc; //variables that hold characters for testing and writing
-    enum cursorState cs = OUTSIDECOMMENT; //initialise state of cursor to outside comment.. entry state
-    int wasInsideCandidate = 0; //holds previous insidecandidate state
-    int wasOutsideCandidate = 0; //holds previous outsidecomment state
-
-
-    if((f = fopen(filename, "r"))) { //if filename is openned for reading succesfully
-
-        if((nf = fopen(newfilename, "w"))){ // if newfilename is openned for writing successfully
-
-            while((c=fgetc(f)) != EOF) { //read characters one at a time from filename
-
-                setCursorState(&cs, c); //set the cursor state for the current character
-
-                switch(cs){
-                    case OUTSIDECOMMENT: //if we are outside of comments
-                        wasInsideCandidate = 0; //reinnitialize previous inside candidate state
-                        if(wasOutsideCandidate){ //if the previous state was OUTSIDECANDIDATE
-                            fseek(f, ftell(f) - 2, SEEK_SET); //move cursor 2 chars back  
-                            cc = fgetc(f); //read previously omitTed char OUTSIDECANDIDATE
-                            fputc(cc, nf); //write it to newfilename
-                            cc = fgetc(f); //read a char == c
-                            fputc(cc, nf); //write it to newfilename
-                            wasOutsideCandidate = 0; //set prev state to 0
-                        }
-                        else //if it wasnt a candidate
-                            if(c=='\n') //if it's a line break
-                            fputc(c, nf); //write it
-                            else fputc(' ', nf); //if its any other character print a space
-                        break;
-                    //if we are inside a comment whatever it's type
-                    case INSIDECOMMENT:
-                    case INSIDELINECOMMENT:
-                        if(wasInsideCandidate || wasOutsideCandidate){ 
-                            /**
-                             * in both cases where the cursor was OUTSIDECANDIDATE or INSIDECANDIDATE
-                             * we need to write the previous character since it's inside a comment
-                             * 
-                            */
-                            fseek(f, ftell(f) - 2, SEEK_SET); //take cursor 2 chars back
-                            cc = fgetc(f); //read previously omitTed char
-                            fputc(cc, nf); //write it
-                            fseek(f, ftell(f) + 1, SEEK_SET); //move the cursor one char (c)
-                            wasOutsideCandidate = 0; //reset both previous states
-                            wasInsideCandidate=0;
-
-
-                        }
-                        fputc(c, nf); //write c
-                        break;
-                    case INSIDECANDIDATE:   //if the cursor is pointing on a candidate to a comment start
-                        wasInsideCandidate=1; // save that state 
-                        break;
-                    case OUTSIDECANDIDATE: // if the cursor is pointing on a candidate to a comment end
-                        wasOutsideCandidate = 1; // save that state 
-                        break;
-                    //no default case (enum)
-
-
-                }
-                
-            }
-
-            fclose(nf); //close newfilename
-        }
-        else{ //error handling for opening for reading problems (ex: permissions)
-            puts("Error: couldn\'t open file for writing.");
-            printf("file: %s\n", newfilename);
-            exit(EXIT_FAILURE);
-        }
-
-        fclose(f); //close filename
-
-    }
-    else{ //error handling for opening for reading problems (ex: permissions)
-        puts("Error: couldn\'t open file for reading.");
-        printf("file: %s\n", filename);
-
-        exit(EXIT_FAILURE);
-    }
-
-
-}
-
 void parse_args(int argc, char *argv[], char** filename, char** newfilename){
 
     /**
@@ -160,11 +87,13 @@ void parse_args(int argc, char *argv[], char** filename, char** newfilename){
      * 
     */
     switch(argc) {
-        case 1:  //if only on arg is suplied (executable name)
-            // handle error
-            puts("Error: Please specify a file"); 
-            printhelp();
-            exit(EXIT_FAILURE);
+        case 1:  //if only one arg is suplied (executable name) 
+            // use standard io 
+
+            //use filename as a flag to communicate the use of std io
+            *filename = (char*) malloc((strlen("std")+1)*sizeof(char));
+
+            strcpy(*filename, "std");
             break;
         case 2: //if one extra argument is suplied (missing newfilename)
             *filename = *(argv+1); //point to it using filename
@@ -189,145 +118,70 @@ void parse_args(int argc, char *argv[], char** filename, char** newfilename){
 
 int main(int argc, char *argv[]){
 
+    srand(time(NULL));
+
+    int random = rand();
+
+    char randomname[30];
+
+    sprintf(randomname, "tmp%d", random);
    
 
     char *filename = NULL, *newfilename = NULL;
 
     parse_args(argc, argv, &filename, &newfilename); //parse command line arguments
 
-    removeCode(filename, newfilename); //remove code
+    if(strcmp(filename, "std")==0){
+        buffer_to_file(stdin, randomname);
+        removeCode(open_iofile(randomname, 0), stdout);
+        remove(randomname);
+    }
+    else
+        removeCode(open_iofile(filename, 0), open_iofile(newfilename, 1)); //remove code 
     
     //Garbage Collection
     if(argc==2 && newfilename!=NULL) free(newfilename);
+    if(argc==2 && filename!=NULL) free(filename);
+    //no need to collect the files since they only exist inside removeCode.
+
+
     return 0;
 }
 ```
 
 comments.main.c:
 
-```c
+``` c
                  
                   
+                 
                   
                        
 
                  
     /**
      * 
-     * Prints help
-    */
+                  
+     
                         
-                                                   
- 
-
                                                     
-
-    /**
-     * 
-     * Function that does all the io
-     * reads filename
-     * writes to newfilename
-     * 
-    */
-                    //pointer on filename
-                     //pointer on newfilename
-                //variables that hold characters for testing and writing
-                                          //initialise state of cursor to outside comment.. entry state
-                                //holds previous insidecandidate state
-                                 //holds previous outsidecomment state
-
-
-                                     //if filename is openned for reading succesfully
-
-                                            // if newfilename is openned for writing successfully
-
-                                         //read characters one at a time from filename
-
-                                        //set the cursor state for the current character
-
-                           
-                                         //if we are outside of comments
-                                                //reinnitialize previous inside candidate state
-                                                 //if the previous state was OUTSIDECANDIDATE
-                                                              //move cursor 2 chars back  
-                                           //read previously omitTed char OUTSIDECANDIDATE
-                                           //write it to newfilename
-                                           //read a char == c
-                                           //write it to newfilename
-                                                     //set prev state to 0
-                         
-                             //if it wasnt a candidate
-                                        //if it's a line break
-                                          //write it
-                                                 //if its any other character print a space
-                              
-                    //if we are inside a comment whatever it's type
-                                       
-                                           
-                                                                       
-                            /**
-                             * in both cases where the cursor was OUTSIDECANDIDATE or INSIDECANDIDATE
-                             * we need to write the previous character since it's inside a comment
-                             * 
-                            */
-                                                              //take cursor 2 chars back
-                                           //read previously omitTed char
-                                           //write it
-                                                              //move the cursor one char (c)
-                                                     //reset both previous states
-                                                 
-
-
-                         
-                                      //write c
-                              
-                                            //if the cursor is pointing on a candidate to a comment start
-                                              // save that state 
-                              
-                                           // if the cursor is pointing on a candidate to a comment end
-                                                 // save that state 
-                              
-                    //no default case (enum)
-
-
-                 
-                
-             
-
-                        //close newfilename
-         
-              //error handling for opening for reading problems (ex: permissions)
-                                                            
-                                              
-                               
-         
-
-                   //close filename
-
-     
-          //error handling for opening for reading problems (ex: permissions)
-                                                        
-                                       
-
-                           
-     
-
-
  
 
                                                                              
 
     /**
      * Parses arguments and alters filename and newfilename
-     * 
-     * 
-    */
+       
+       
+     
                   
-                 //if only on arg is suplied (executable name)
-            // handle error
-                                                  
-                        
-                               
+                 //if only one arg is suplied (executable name) 
+            // use standard io 
+
+            //use filename as a flag to communicate the use of std io
+                                                                       
+
+                                     
                   
                 //if one extra argument is suplied (missing newfilename)
                                    //point to it using filename
@@ -352,16 +206,33 @@ comments.main.c:
 
                                  
 
+                      
+
+                        
+
+                        
+
+                                         
    
 
                                                
 
                                                      //parse command line arguments
 
-                                       //remove code
+                                   
+                                          
+                                                       
+                           
+     
+        
+                                                                           //remove code 
     
     //Garbage Collection
                                                        
+                                                 
+    //no need to collect the files since they only exist inside removeCode.
+
+
              
  
 ```

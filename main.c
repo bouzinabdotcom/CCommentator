@@ -13,12 +13,6 @@ void printhelp(){
     puts("$ ./ccommentator filename [newfilename]");
 }
 
-
-
-
-
-
-
 void parse_args(int argc, char *argv[], char** filename, char** newfilename){
 
     /**

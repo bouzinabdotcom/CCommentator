@@ -68,6 +68,9 @@ void removeCode(FILE * f, FILE * nf) {
         setCursorState(&cs, c); //set the cursor state for the current character
 
         switch(cs){
+
+            case ISESCAPEDCHAR:
+            case ISSTRING:
             case OUTSIDECOMMENT: //if we are outside of comments
                 wasInsideCandidate = 0; //reinnitialize previous inside candidate state
                 if(wasOutsideCandidate){ //if the previous state was OUTSIDECANDIDATE

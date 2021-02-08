@@ -19,7 +19,8 @@ void setCursorState(enum cursorState *s, char cursor){
             else if(cursor == '\\') *s = ISLINECONTINUATION; //or found a line continuation
             break;
         case OUTSIDECOMMENT: //if not in a comment
-            if(cursor == '/') *s = INSIDECANDIDATE; //and found '/' it could be the beginning of a comment
+            if(cursor == '\"') *s = ISSTRING;
+            else if(cursor == '/') *s = INSIDECANDIDATE; //and found '/' it could be the beginning of a comment
             break;
         case INSIDECANDIDATE: //if it could be a comment
             if(cursor == '*') *s = INSIDECOMMENT; //and found '*' its a multiline comment
@@ -33,6 +34,13 @@ void setCursorState(enum cursorState *s, char cursor){
             if(cursor != '\\') *s = INSIDELINECOMMENT; // whatever the curent character other than another backslash\
                                                          is we are still inside a line comment
             break;
+        case ISSTRING:
+            if(cursor == '\\') *s = ISESCAPEDCHAR;
+            else if(cursor == '\"') *s = OUTSIDECOMMENT;
+            break;
+        case ISESCAPEDCHAR:
+            *s = ISSTRING; //gotta test for escape sequences but we're dealing with comments\
+                            we don't care if the string literal is valid or not. (but still, it should be done anyways)
         //No default case we're switching on an enum :3
     }
 }
