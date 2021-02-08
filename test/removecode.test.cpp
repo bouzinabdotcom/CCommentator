@@ -92,3 +92,21 @@ TEST_CASE("leave comments with line continuations and remove the rest", "[remove
 
     after();
 }
+
+//negative tests
+
+TEST_CASE("do not leave multiline comments inside string litterals", "[removecode]") {
+    before("printf(\"/* Not a comment. */\\n\");");
+
+    REQUIRE(strcmp("                                 ", ostr) == 0);
+
+    after();
+}
+
+TEST_CASE("do not leave line comments inside string litterals", "[removecode]") {
+    before("printf(\"// Not a comment.\\n\");");
+
+    REQUIRE(strcmp("                              ", ostr) == 0);
+
+    after();
+}
