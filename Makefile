@@ -1,8 +1,11 @@
-all: main.o comment_sm.o
-	gcc main.o comment_sm.o -o ccommentator
+all: main.o comment_sm.o removecode.o
+	gcc main.o comment_sm.o removecode.o -o ccommentator
 	make clean
 
-comment_sm.o: comment_sm.c comment_sm.h
+removecode.o: comment_sm.o
+	gcc -c removecode.c
+
+comment_sm.o: 
 	gcc -c comment_sm.c
 
 
