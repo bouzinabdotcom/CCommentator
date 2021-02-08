@@ -110,7 +110,11 @@ void removeCode(FILE * f, FILE * nf) {
             case OUTSIDECANDIDATE: // if the cursor is pointing on a candidate to a comment end
                 wasOutsideCandidate = 1; // save that state 
                 break;
+            case ISLINECONTINUATION: //if the cursor is pointing on a line continuation or a backslash in general
+                fputc(c, nf); //write c
+                break;
             //no default case (enum)
+
 
 
         }

@@ -16,6 +16,7 @@ void setCursorState(enum cursorState *s, char cursor){
             break;
         case INSIDELINECOMMENT: //if inside line comment
             if(cursor=='\n') *s = OUTSIDECOMMENT; //and found a line break the comment has ended
+            else if(cursor == '\\') *s = ISLINECONTINUATION; //or found a line continuation
             break;
         case OUTSIDECOMMENT: //if not in a comment
             if(cursor == '/') *s = INSIDECANDIDATE; //and found '/' it could be the beginning of a comment
@@ -28,6 +29,10 @@ void setCursorState(enum cursorState *s, char cursor){
         case OUTSIDECANDIDATE://if it could be the end of the comment
             if(cursor == '/') *s = OUTSIDECOMMENT; //and found '/' it's definitly he end of the comment
             else *s = INSIDECOMMENT; //if no '/' found then its just a '*'
+        case ISLINECONTINUATION: //if the last cursor pointed on a line continuation inside a line comment
+            if(cursor != '\\') *s = INSIDELINECOMMENT; // whatever the curent character other than another backslash\
+                                                         is we are still inside a line comment
+            break;
         //No default case we're switching on an enum :3
     }
 }
