@@ -76,3 +76,19 @@ TEST_CASE("remove code and leave comment", "[removecode]") {
 
     after();
 }
+
+TEST_CASE("leave comments with line continuations", "[removecode]") {
+    before("//test\\\ntestestetsets\\\ntest");
+
+    REQUIRE(strcmp("//test\\\ntestestetsets\\\ntest", ostr) == 0);
+
+    after();
+}
+
+TEST_CASE("leave comments with line continuations and remove the rest", "[removecode]") {
+    before("//test\\\ntestestetsets\\\ntest\nmain(){}");
+
+    REQUIRE(strcmp("//test\\\ntestestetsets\\\ntest\n        ", ostr) == 0);
+
+    after();
+}
